@@ -8,10 +8,11 @@ interactive installation
 
 ###Description: (TODO)
 
-### Get it up and running: (TODO)
-- Camera
+### Get it up and running / Setup: (TODO)
+- Camera (autofocus, fixed shutter)
+- Background (white, bright)
 - TouchOSC (config, layout)
-- Controller
+- Controller (scroll, press)
 - Fullscreen/Export app
 
 ### Use of contributed Libraries:
