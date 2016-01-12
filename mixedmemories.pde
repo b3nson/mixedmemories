@@ -16,7 +16,7 @@ String oPath = "o/";
 String oPathSecret = "o/secret/";
 String shaderSettingsPath = "i/conf/shader_settings.conf";
 String oscremoteip = "i/conf/osc_settings.conf";
-boolean motionCheckEnabled = true;
+boolean motionCheckEnabled = false;
 boolean startOSC = true;
 boolean blackScreen = false;
 boolean shaderParamChanged = false;
@@ -50,9 +50,9 @@ boolean showfps = false;
 boolean caminitialized = false;
 
 BlendImage[] images;
-int ii; //imageindex
-int iianim; //imageindex
-int iianimoffset = 0; //imageindex
+int ii;
+int iianim;
+int iianimoffset = 0;
 int numanimsrunning = 0;
 float fadealpha = 255;
 float countdownscale = 0.2;
@@ -65,7 +65,6 @@ int coundownnum = 3;
 String timestamp;
 color red = color(255, 85, 85);
 color green = color(25,180,95);
-NetAddress remoteui;
 
 PShader overlay;
 PShader blur;
@@ -81,11 +80,8 @@ Ani aniCountdownscale, aniCountdownstroke, aniAfterCapture, aniShowCapture, dela
 
 
 void setup() {
-  w = displayWidth;
-  h = int(displayWidth / (16f/9f));
-  
-  w = 720;
-  h = int(720 / (16f/9f));
+  //w = displayWidth;
+  //h = int(displayWidth / (16f/9f));
   
   size(1280, 720, P2D);
   //fullScreen(P2D);
@@ -93,7 +89,7 @@ void setup() {
     
   frameRate(120);
   smooth();
-  //noCursor();
+  noCursor();
 
   Ani.init(this);
   Ani.noAutostart();
@@ -119,9 +115,6 @@ void setup() {
   preloadPrev();
   showNext();
 
-  //println(Capture.list());
-  //String[] cameras = Capture.list();
-
   if (cameras == null) {
     println("Failed to retrieve the list of available cameras, will try the default...");
     cam = new Capture(this, 640, 480);
@@ -129,9 +122,8 @@ void setup() {
     println("There are no cameras available for capture.");
     exit();
   } else {
-    println("Available cameras:");
-    printArray(cameras);
-    
+    //println("Available cameras:");
+    //printArray(cameras);
     cam = new Capture(this, cameras[0]);
     cam.start(); 
   }
@@ -152,8 +144,7 @@ void setup() {
   Ani.noAutostart();
   aniAlphafade = new Ani(this, 0.5, "fadealpha", 0.0, Ani.LINEAR, "onEnd:fadeinFinished");
   aniWaitForFade = new Ani(this, 1.0, "dummyval", 0, Ani.LINEAR, "onEnd:reportAnimFinished");
-  if(motionCheckEnabled)
-    delayMotionCheck = new Ani(this, checkPauseDuration, "dummyval", 0, Ani.LINEAR, "onEnd:resumeMotionCheck"); 
+  delayMotionCheck = new Ani(this, checkPauseDuration, "dummyval", 0, Ani.LINEAR, "onEnd:resumeMotionCheck"); 
   
   Ani.autostart();
 }
@@ -161,9 +152,8 @@ void setup() {
 void initShaders() {
   //blur = loadShader("i/shader/blur.glsl");
   overlay = loadShader("i/shader/overlay.glsl");
-  overlay.set("alpha", 1.0);
-  if(motionCheckEnabled) 
-    modect = loadShader("i/shader/modect.glsl");   
+  overlay.set("alpha", 1.0); 
+  modect = loadShader("i/shader/modect.glsl");   
 
   overlay.set("imgSampler", images[ii].getImg());
   overlay.set("camscalex", ( (float)images[ii].getDisplaySize().x) / (float)width);  
@@ -184,7 +174,7 @@ void initShaders() {
 }
 
 void draw() {
-
+  
   if(!caminitialized) {
     if (cam.available()) {
       cam.read();
@@ -219,7 +209,6 @@ void draw() {
           shaderParamChanged = false;
         }
 
-        
         pushMatrix();
           translate(0, 0);
           noStroke();
@@ -234,8 +223,6 @@ void draw() {
       }
       
       //=======================================================================================================
-      
-
     
       if(animrunning) {
         
@@ -256,17 +243,13 @@ void draw() {
             images[iianim].draw();  
           }          
         }
-        
-        
       } else {
-
         images[ii].draw();
       }
       
       //blur.set("blurOffset", 0.001, 0.000);
       //for(int n = 0; n < 2; n++)
       //    filter(blur);
-     
      
       if(animsJustStopped) {
         animsJustStopped = false;
@@ -282,9 +265,7 @@ void draw() {
         aniAlphafade.setBegin(fadealpha);
         aniAlphafade.setEnd(0.0);
         aniAlphafade.start();
-        //Ani.to(this, 0.5, "fadealpha", 0.0, Ani.LINEAR, "onEnd:fadeinFinished");
       }
-      
       
       if(fadeinrunning) {
        resetShader();
@@ -300,7 +281,6 @@ void draw() {
         noFill();
         rect(0, 0, width, height);
       }
-
     
       if(countdownrunning) {
         resetShader();
@@ -402,7 +382,7 @@ void draw() {
       }
 
   }//motionCheckEnabled
-  //}//cam.available
+  //}//cam.available //<>//
 
   if(!captureMode) {
     drawSlideshow();
@@ -439,22 +419,20 @@ void draw() {
 } //draw
 
 
+
 // ---------------------------------------------------------------------------
 //  ACTIONS
 // ---------------------------------------------------------------------------
 
 void pauseMotionCheck() {
-  //println("pauseMotionCheck: " +motionCheckEnabled);
   if(motionCheckEnabled) {
     motioncheckpaused = true; 
-    //Ani.to(this, checkPauseDuration, "dummyval", 0, Ani.LINEAR, "onEnd:resumeMotionCheck"); 
     delayMotionCheck.start();
     countNoMotion = 0;
   }
 }
 
 void resumeMotionCheck() {
-  //println("resumeMotionCheck: " +motionCheckEnabled); //<>//
   if(motionCheckEnabled) {
     delayMotionCheck.seek(0);
     motioncheckpaused = false;
@@ -462,10 +440,9 @@ void resumeMotionCheck() {
   }
 }
 
-
 void startCapture() {
   if(slideShowRunning && !slideShowForced) {
-    endSlideshow(); //<>//
+    endSlideshow();
     return;
   }
   if(!countdownrunning && !aftercapturerunning && !showcapturerunning) {
@@ -477,7 +454,7 @@ void startCapture() {
     aniCountdownfade.pause();
     aniCountdownstroke.pause();
     aniCountdownscale.seek(0);
-    aniCountdownfade.seek(0);
+    aniCountdownfade.seek(0); //<>//
     aniCountdownstroke.seek(0);  
     countdownrunning = false;
     countdownstopped = true;
@@ -486,10 +463,9 @@ void startCapture() {
     aniCountdownstopped.start();
   }
 }
-      
-      
+
 void captureImage() {
-  countdownstroke = 10;
+  countdownstroke = 10; //<>//
   if(!firstrun) {
     countdownrunning = false;
     timestamp = generateTimestamp();
@@ -537,7 +513,6 @@ void showHelpText() {
   showfps = !showfps;
 }
 
-
 //--- IMG SELECTION -------------------------------------=====================================================
 
 void showNext() { 
@@ -553,7 +528,6 @@ void showPrev() {
     animPrev();
   }
 }
-
 
  void animNext() {
    if(waitforfade || fadeinrunning) {
@@ -591,7 +565,6 @@ void showPrev() {
      fadeinrunning = false;
      animsJustStopped = false;
    }
-   
    fadealpha = 255;
    
    if((animrunning && !animDir) || !animrunning) {   
@@ -603,20 +576,15 @@ void showPrev() {
    } else {
       println("DIRCHANGE: backward to forward"); 
    }
-   
-
  }
 
-public void reportMoveFinished(BlendImage bi, boolean forward) {
-  
+public void reportMoveFinished(boolean forward) {
   iianimoffset--;
   
   if(forward) {
     iiincr();
-    //println("iiincr(): " +ii);
   } else {
     iidecr();
-    //println("iidecr(): " +ii);
   }
   
   liveimg = false;
@@ -624,19 +592,17 @@ public void reportMoveFinished(BlendImage bi, boolean forward) {
   if(iianimoffset == 0) {
     animrunning = false;
     waitforfade = true;
-    aniWaitForFade.start();
-    //Ani.to(this, 1.0, "dummyval", 0, Ani.LINEAR, "onEnd:reportAnimFinished"); 
-    
+    aniWaitForFade.start();    
   }  
 }
 
- public void reportAnimFinished() {
-     animsJustStopped = true; 
- }
+public void reportAnimFinished() {
+  animsJustStopped = true; 
+}
 
-  public void fadeinFinished() {   
-    fadeinrunning = false;
-  }
+public void fadeinFinished() {   
+  fadeinrunning = false;
+}
   
   
 //--- PRELOAD -------------------------------------
@@ -684,11 +650,14 @@ void keyPressed() {
     }
     if(motionCheckEnabled)
        pauseMotionCheck();
+       
+    updateRemoteUi(); 
 }
 
 void keyReleased() {
   processKey(keyCode, false);
 }
+
 static void processKey(int k, boolean set) {
   if (k < KEYS)  keysDown[k] = set;
 }
@@ -729,10 +698,8 @@ void mouseWheel(MouseEvent event) {
   */ 
   if(tdiff >= debounce) {   
     if (e < 0f) {
-      //println("WHEEL R: " +e +" allowed: " +dirChangePossible +" " +frameCount);
       showPrev();
     } else {
-      //println("WHEEL L: " +e +" allowed: " +dirChangePossible +" " +frameCount);
       showNext();
     }
   } else {
@@ -745,14 +712,9 @@ void mouseWheel(MouseEvent event) {
 }
 
 
-
 // ---------------------------------------------------------------------------
 //  GENERAL UTIL
 // ---------------------------------------------------------------------------
-
-//boolean sketchFullScreen() {
-//  return fullscreen;
-//}
 
 int iigetadd(int n) {
   int tmp = ii + n;

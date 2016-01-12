@@ -35,7 +35,6 @@ void drawSlideshow() {
   if(slideShowRunning) {
     colorMode(RGB, 255, 255, 255, 255);
     pushMatrix();
-      //scale(1, 1);
       translate(w/2, h/2);
       if(transitionRunning && isNextReady()) {   //show transition (2ximg)
         if(firstRunAfterLoad) {
@@ -43,7 +42,6 @@ void drawSlideshow() {
            slidetrans.setBegin(alpha);
            slidetrans.setDuration(transDuration);
            slidetrans.start();
-           //Ani.to(this, transDuration, "alpha", 255, Ani.SINE_IN_OUT, "onEnd:transComplete");  //####
            firstRunAfterLoad = false;
         }
         noTint();
@@ -90,9 +88,9 @@ void startSlideshow() {
   }
 }
 
-void endSlideshow() { //<>//
+void endSlideshow() {
   slideShowRunning = false;
-  slideshowList = null;
+  slideshowList = null; //<>//
   slideCur = null;
   slideNxt = null;
   slideLod = null;
@@ -108,7 +106,6 @@ void endSlideshow() { //<>//
 
 
 void transComplete() {
-  //println("transComplete");
   transitionRunning = false;
   slideShowIndex = (slideShowIndex+1 < slideshowList.size()) ? slideShowIndex+1 : 0;
   slideCur = slideNxt;
@@ -116,7 +113,6 @@ void transComplete() {
   slideLod = null;
   slidetime.setDuration(slideDuration);
   slidetime.start();
-  //Ani.to(this, slideDuration, "dummyval", 0, Ani.LINEAR, "onEnd:showNextSlide"); //####
 }
 
 
@@ -140,8 +136,6 @@ boolean isNextReady() {
     return false;
   }
 }
-
-
 
 StringList getSlideshowImages() {
   String[] allFiles = {};

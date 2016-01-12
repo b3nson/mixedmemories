@@ -2,14 +2,24 @@ import oscP5.*;
 import netP5.*;
 
 OscP5 osc;
+NetAddress remoteui;
 
-boolean save_motionCheckEnabled;
+boolean save_motionCheckEnabled = motionCheckEnabled;
 boolean restartdebounce = false;
 
 void oscEvent(OscMessage theOscMessage) {
-  print(" addrpattern: "+theOscMessage.addrPattern());
-  println(" typetag: "+theOscMessage.typetag());
-  String addr = theOscMessage.addrPattern();
+  //print(" addrpattern: "+theOscMessage.addrPattern());
+  //print(" typetag: "+theOscMessage.typetag());
+  //println(" value: "+theOscMessage.get(0).floatValue());
+  
+  if(theOscMessage.checkAddrPattern("/shader")==true) {
+    updateRemoteUi();   
+    return;
+  } else if(theOscMessage.checkAddrPattern("/mm")==true) {
+    updateRemoteUi();   
+    return;
+  }   
+  
   float val = theOscMessage.get(0).floatValue();
   
   if(theOscMessage.checkAddrPattern("/mm/slideshow")==true) {
@@ -22,16 +32,16 @@ void oscEvent(OscMessage theOscMessage) {
      countNoMotion = -1;
 
       if(!captureMode) {
-        motionCheckEnabled = false;
+        //motionCheckEnabled = false;
         slideShowForced = true;
-        startSlideshow();  //<>//
+        startSlideshow();  //<>// //<>//
       } else {
-        motionCheckEnabled = true;
+        //motionCheckEnabled = true;
         slideShowForced = false;
-        pauseMotionCheck();
+        //pauseMotionCheck();
         endSlideshow(); 
       }
-  } else if(theOscMessage.checkAddrPattern("/mm/slideduration")==true) {
+  } else if(theOscMessage.checkAddrPattern("/mm/slidedur")==true) {
       slideDuration = val;
       println("OSC: setSlideDuration: " +val);
   } else if(theOscMessage.checkAddrPattern("/mm/fadeduration")==true) {
@@ -40,8 +50,9 @@ void oscEvent(OscMessage theOscMessage) {
   } else if(theOscMessage.checkAddrPattern("/mm/durationdefault")==true) {
       transDuration = 2f;
       slideDuration = 5f;
+      updateRemoteUi();
       println("OSC: resetSlideDurations: " +val);
-  } else if(theOscMessage.checkAddrPattern("/mm/black")==true) {
+  } else if(theOscMessage.checkAddrPattern("/mm/switchblack")==true) {
     if(val == 1.0) {
       blackScreen = true;
       save_motionCheckEnabled = motionCheckEnabled;
@@ -172,7 +183,8 @@ void oscEvent(OscMessage theOscMessage) {
  } else if(theOscMessage.checkAddrPattern("/shader/updateui")==true) {
    println("updateui");
    updateRemoteUi();   
- } 
+ }
+
  
   
 }
@@ -210,8 +222,48 @@ public void readShaderSettingsFromFile() {
 
 public void updateRemoteUi() {
    OscBundle msgbundle = new OscBundle();
+
+   OscMessage msg = new OscMessage("/mm/showfps"); 
+   msg.add(float(int(showfps)));
+   msgbundle.add(msg);
+   msg.clear();
+
+   msg.setAddrPattern("/mm/switchblack");
+   msg.add(float(int(blackScreen)));
+   msgbundle.add(msg);
+   msg.clear();
+
+   msg.setAddrPattern("/mm/slideshow");
+   msg.add(float(int(!captureMode)));
+   msgbundle.add(msg);
+   msg.clear();
+
+   msg.setAddrPattern("/mm/slidedur");
+   msg.add(slideDuration);
+   msgbundle.add(msg);
+   msg.clear();
    
-   OscMessage msg = new OscMessage("/shader/plusr"); 
+   msg.setAddrPattern("/mm/fadeduration");
+   msg.add(transDuration);
+   msgbundle.add(msg);
+   msg.clear();   
+
+   msg.setAddrPattern("/mm/modect_toggle");
+   msg.add(float(int(motionCheckEnabled)));
+   msgbundle.add(msg);
+   msg.clear();
+   
+   msg.setAddrPattern("/mm/modect_preview");
+   msg.add(float(int(modect_preview)));
+   msgbundle.add(msg);
+   msg.clear();
+
+   msg.setAddrPattern("/mm/modect_contrast");
+   msg.add(modect_contrast);
+   msgbundle.add(msg);
+   msg.clear();  
+   
+   msg.setAddrPattern("/shader/plusr");
    msg.add(shader_plusr);
    msgbundle.add(msg);
    msg.clear();

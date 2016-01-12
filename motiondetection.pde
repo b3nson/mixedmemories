@@ -48,11 +48,6 @@ void checkMotion() {
     
       diffimg.loadPixels();
       thread("detectMotion");
-       
-      //image(diffimg, 400,500, 320, 180);
-      //image(prev, 780, 500,320, 180 );
-      //image(cam,50 ,100);
-      //image(diffimg, width/2, height/2);
 }
 
 void detectMotion() {
